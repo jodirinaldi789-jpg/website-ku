@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BelanjaCerdas - Katalog Produk Pilihan</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  body { background: #f5f7fa; color: #1a1a1a; padding-bottom: 40px; }
+
+  header {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    color: #fff; padding: 20px 16px; text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 100;
+  }
+  header h1 { font-size: 22px; font-weight: 700; }
+  header p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+
+  .controls { padding: 16px; max-width: 1100px; margin: 0 auto; }
+  .search-box {
+    width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0;
+    border-radius: 12px; font-size: 15px; outline: none;
+    transition: border 0.2s; background: #fff;
+  }
+  .search-box:focus { border-color: #2563eb; }
+
+  .filters {
+    display: flex; gap: 8px; margin-top: 12px;
+    overflow-x: auto; padding-bottom: 6px; scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .filter-btn {
+    padding: 8px 16px; border: none; border-radius: 20px;
+    background: #fff; color: #475569; font-size: 13px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    border: 1px solid #e2e8f0;
+  }
+  .filter-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 12px; padding: 0 16px; max-width: 1100px; margin: 0 auto;
+  }
+  @media (min-width: 600px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 900px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .card {
+    background: #fff; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.2s;
+    display: flex; flex-direction: column;
+  }
+  .card:active { transform: scale(0.98); }
+  .card-img {
+    width: 100%; aspect-ratio: 1/1; background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; color: #cbd5e1; overflow: hidden;
+  }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; }
+  .card-title {
+    font-size: 13px; font-weight: 600; line-height: 1.3;
+    color: #1e293b; margin-bottom: 6px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; min-height: 34px;
+  }
+  .card-price { font-size: 15px; font-weight: 700; color: #dc2626; margin-bottom: 8px; }
+  .card-cat {
+    font-size: 10px; color: #64748b; background: #f1f5f9;
+    padding: 2px 8px; border-radius: 6px; align-self: flex-start; margin-bottom: 8px;
+  }
+
+  .btn-group { display: flex; flex-direction: column; gap: 5px; margin-top: auto; }
+  .btn {
+    display: block; text-align: center; padding: 8px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; text-decoration: none;
+    color: #fff; transition: opacity 0.2s;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn-shopee { background: #ee4d2d; }
+  .btn-tokopedia { background: #03ac0e; }
+  .btn-tiktok { background: #000000; }
+
+  footer {
+    text-align: center; padding: 24px 16px; color: #94a3b8;
+    font-size: 12px; margin-top: 20px;
+  }
+
+  .empty { text-align: center; padding: 60px 20px; color: #94a3b8; grid-column: 1/-1; }
+  .empty-icon { font-size: 50px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛍️ BelanjaCerdas</h1>
+  <p>Katalog produk pilihan dari marketplace terpercaya</p>
+</header>
+
+<div class="controls">
+  <input type="text" class="search-box" id="search" placeholder="🔍 Cari produk...">
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-cat="all">Semua</button>
+    <button class="filter-btn" data-cat="Fashion">Fashion</button>
+    <button class="filter-btn" data-cat="Gadget">Gadget</button>
+    <button class="filter-btn" data-cat="Skincare">Skincare</button>
+    <button class="filter-btn" data-cat="Rumah">Rumah</button>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  © 2025 BelanjaCerdas • Dibuat dengan ❤️
+</footer>
+
+<script>
+const produk = [
+  {
+    nama: "Kaos Polos Premium Cotton",
+    harga: 45000,
+    kategori: "Fashion",
+    gambar: "",
+    shopee: "https://shope.ee/contoh1",
+    tokopedia: "https://tk.tokopedia.com/contoh1",
+    tiktok: ""
+  },
+  {
+    nama: "Sepatu Sneakers Pria Wanita",
+    harga: 189000,
+    kategori: "Fashion",
+    gambar: "",
+    shopee: "https://shope.ee/contoh2",
+    tokopedia: "",
+    tiktok: "https://vt.tiktok.com/contoh2"
+  },
+  {
+    nama: "TWS Bluetooth 5.3",
+    harga: 129000,
+    kategori: "Gadget",
+    gambar: "",
+    shopee: "https://shope.ee/contoh3",
+    tokopedia: "https://tk.tokopedia.com/contoh3",
+    tiktok: "https://vt.tiktok.com/contoh3"
+  },
+  {
+    nama: "Powerbank 10000mAh Fast Charging",
+    harga: 99000,
+    kategori: "Gadget",
+    gambar: "",
+    shopee: "https://shope.ee/contoh4",
+    tokopedia: "",
+    tiktok: ""
+  },
+  {
+    nama: "Serum Vitamin C Brightening",
+    harga: 75000,
+    kategori: "Skincare",
+    gambar: "",
+    shopee: "https://shope.ee/contoh5",
+    tokopedia: "https://tk.tokopedia.com/contoh5",
+    tiktok: "https://vt.tiktok.com/contoh5"
+  },
+  {
+    nama: "Sunscreen SPF 50 PA++++",
+    harga: 65000,
+    kategori: "Skincare",
+    gambar: "",
+    shopee: "https://shope.ee/contoh6",
+    tokopedia: "",
+    tiktok: "https://vt.tiktok.com/contoh6"
+  },
+  {
+    nama: "Lampu Tidur LED Aesthetic",
+    harga: 55000,
+    kategori: "Rumah",
+    gambar: "",
+    shopee: "https://shope.ee/contoh7",
+    tokopedia: "",
+    tiktok: ""
+  },
+  {
+    nama: "Rak Buku Minimalis 3 Tingkat",
+    harga: 145000,
+    kategori: "Rumah",
+    gambar: "",
+    shopee: "https://shope.ee/contoh8",
+    tokopedia: "https://tk.tokopedia.com/contoh8",
+    tiktok: ""
+  }
+];
+
+const grid = document.getElementById('grid');
+const searchInput = document.getElementById('search');
+const filterBtns = document.querySelectorAll('.filter-btn');
+let kategoriAktif = 'all';
+let keyword = '';
+
+function formatRupiah(angka) {
+  return 'Rp ' + angka.toLocaleString('id-ID');
+}
+
+function render() {
+  let hasil = produk.filter(p => {
+    const cocokKategori = kategoriAktif === 'all' || p.kategori === kategoriAktif;
+    const cocokSearch = p.nama.toLowerCase().includes(keyword.toLowerCase());
+    return cocokKategori && cocokSearch;
+  });
+
+  if (hasil.length === 0) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>Produk tidak ditemukan</p></div>';
+    return;
+  }
+
+  grid.innerHTML = hasil.map(p => {
+    const gambar = p.gambar
+      ? `<img src="${p.gambar}" alt="${p.nama}" onerror="this.parentElement.innerHTML='🛍️'">`
+      : '🛍️';
+
+    const tombol = [];
+    if (p.shopee) tombol.push(`<a href="${p.shopee}" target="_blank" class="btn btn-shopee">🛒 Shopee</a>`);
+    if (p.tokopedia) tombol.push(`<a href="${p.tokopedia}" target="_blank" class="btn btn-tokopedia">🟢 Tokopedia</a>`);
+    if (p.tiktok) tombol.push(`<a href="${p.tiktok}" target="_blank" class="btn btn-tiktok">🎵 TikTok</a>`);
+
+    return `
+      <div class="card">
+        <div class="card-img">${gambar}</div>
+        <div class="card-body">
+          <div class="card-cat">${p.kategori}</div>
+          <div class="card-title">${p.nama}</div>
+          <div class="card-price">${formatRupiah(p.harga)}</div>
+          <div class="btn-group">${tombol.join('')}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+searchInput.addEventListener('input', e => {
+  keyword = e.target.value;
+  render();
+});
+
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    kategoriAktif = btn.dataset.cat;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
